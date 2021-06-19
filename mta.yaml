@@ -75,9 +75,7 @@ modules:
     commands:  
      - npm run build
     supported-platforms: []
-## ends here
-
-  
+## ends here  
 resources:
 - name: CustomerCAP-db
   type: com.sap.xs.hdi-container
@@ -117,7 +115,6 @@ resources:
     ## add requires part for the destination config
   
   ## ends here
-
 - name: CustomerCAP_html_repo_host
   type: org.cloudfoundry.managed-service
   parameters:
