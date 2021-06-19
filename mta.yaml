@@ -1,0 +1,141 @@
+_schema-version: "3.1"
+ID: CustomerCAP
+description: A simple CAP project.
+version: 1.0.0
+modules:
+- name: CustomerCAP-srv
+  type: nodejs
+  path: srv
+  requires:
+  - name: CustomerCAP-db        
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+- name: CustomerCAP-db-deployer
+  type: hdb
+  path: db
+  requires:
+  - name: CustomerCAP-db
+  parameters:
+    buildpack: nodejs_buildpack
+- name: CustomerCAP-destination-content
+  type: com.sap.application.content
+  requires:
+  - name: CustomerCAP-destination-service
+    parameters:
+      content-target: true
+  - name: CustomerCAP_html_repo_host
+    parameters:
+      service-key:
+        name: CustomerCAP_html_repo_host-key
+  - name: uaa_CustomerCAP
+    parameters:
+      service-key:
+        name: uaa_CustomerCAP-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: MyCustomer_CustomerCAP_html_repo_host
+          ServiceInstanceName: CustomerCAP-html5-app-host-service
+          ServiceKeyName: CustomerCAP_html_repo_host-key
+          sap.cloud.service: MyCustomer
+        - Authentication: OAuth2UserTokenExchange
+          Name: MyCustomer_uaa_CustomerCAP
+          ServiceInstanceName: CustomerCAP-xsuaa-service
+          ServiceKeyName: uaa_CustomerCAP-key
+          sap.cloud.service: MyCustomer
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+- name: CustomerCAP_ui_deployer
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: uaa_CustomerCAP
+  - name: CustomerCAP_html_repo_host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - fioriapp-content.zip
+      name: fioriapp
+      target-path: resources/
+- name: fioriapp
+  type: html5
+  path: app/fioriapp
+  requires:
+  - name: uaa_CustomerCAP
+  build-parameters:
+    builder: custom
+    path: app/fioriapp
+    commands:  
+     - npm run build
+    supported-platforms: []
+## ends here
+
+  
+resources:
+- name: CustomerCAP-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+  properties:
+    hdi-service-name: ${service-name}
+- name: CustomerCAP-destination-service
+  type: org.cloudfoundry.managed-service
+  requires:
+  - name: srv-api
+  parameters:
+    service: destination
+    service-name: CustomerCAP-destination-service
+    service-plan: lite
+    config:
+           HTML5Runtime_enabled: true
+           version: 1.0.0
+           init_data:
+            subaccount:
+             existing_destinations_policy: update
+           
+             destinations:
+             - Name: CustomerCAP
+               Authentication: NoAuthentication               
+               ProxyType: Internet
+               Type: HTTP
+               URL: ~{srv-api/srv-url}
+               HTML5.DynamicDestination: true
+               HTML5.ForwardAuthToken: true
+             
+             
+            ##ends here
+            
+    
+    ## add requires part for the destination config
+  
+  ## ends here
+
+- name: CustomerCAP_html_repo_host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: CustomerCAP-html5-app-host-service
+    service-plan: app-host
+- name: uaa_CustomerCAP
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: CustomerCAP-xsuaa-service
+    service-plan: application
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm install --production
+    - npx -p @sap/cds-dk cds build --production

@@ -1,0 +1,38 @@
+{
+    "resources": [
+        {
+            "name": "../../../../customer/fioriapp/index.html"
+        },
+        {
+            "name": "../../../../customer/fioriapp/Component.js"
+        },
+        {
+            "name": "../../../../customer/fioriapp/utils/locate-reuse-libs.js"
+        },
+        {
+            "name": "../../../../customer/fioriapp/manifest.json"
+        },
+        {
+            "name": "../../../../customer/fioriapp/manifest-bundle.zip"
+        },
+        {
+            "name": "../../../../customer/fioriapp/Component-preload.js",
+            "merged": true
+        },
+        {
+            "name": "../../../../customer/fioriapp/utils/locate-reuse-libs-dbg.js",
+            "isDebug": true
+        },
+        {
+            "name": "../../../../customer/fioriapp/Component-dbg.js",
+            "isDebug": true
+        },
+        {
+            "name": "../../../../sap-ui-version.json"
+        },
+        {
+            "name": "../../../../customer/fioriapp/i18n/i18n.properties",
+            "raw": "i18n/i18n.properties"
+        }
+    ]
+}
